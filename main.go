@@ -13,9 +13,11 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("<h1>SeeSay API Server</h1>")
 	})
-	app.Route("/api", func(r fiber.Router) {
-		r.Use("/audio", stt)
-	})
+
+	api := app.Group("/api")
+
+	api.Get("/audio", handler.stt_handler)
+
 
 	app.Listen(":3000")
 

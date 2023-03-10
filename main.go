@@ -2,6 +2,8 @@ package main
 
 import (
 	fiber "github.com/gofiber/fiber/v2"
+
+	router "api-server/router"
 )
 
 
@@ -10,14 +12,13 @@ func main() {
 
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("<h1>SeeSay API Server</h1>")
-	})
+	// app.Get("/", func(c *fiber.Ctx) error {
+	// 	return c.SendString("<h1>SeeSay API Server</h1>")
+	// })
 
-	api := app.Group("/api")
+	// app.Use(middleware.Logger())
 
-	api.Get("/audio", handler.stt_handler)
-
+	router.SetupRouter(app)
 
 	app.Listen(":3000")
 

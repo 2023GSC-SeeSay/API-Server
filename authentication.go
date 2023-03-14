@@ -1,4 +1,4 @@
-package main
+package authentication
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"firebase.google.com/go/v4"
+    // "firebase.google.com/go/v4/auth"
 	"cloud.google.com/go/firestore"
     "github.com/dgrijalva/jwt-go"
     "google.golang.org/api/iterator"
@@ -92,9 +93,10 @@ func createUserFromToken(token string) (*User, error) {
         return nil, fmt.Errorf("failed to create Firebase app: %v", err)
     }
 
+	
     client, err := app.Auth(ctx)
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to create Firebase Auth client: %v", err)
     }
 
     decodedToken, err := client.VerifyIDToken(ctx, token)
@@ -118,11 +120,6 @@ func createUserFromToken(token string) (*User, error) {
 		Level:	level,
 		CreatedAt:	CreatedAt,
 		language: language}
-
-	// u, err := client.CreateUser(ctx, user)
-	// if err != nil {
-    //     return nil, err
-    // }
 
     return user, nil
 }
@@ -180,12 +177,14 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	// Receive the Firebase authentication token sent by the Flutter app after the user successfully logs in with Google.
 	idToken := r.Header.Get("Authorization")
 	ctx := context.Background()
+
 	// Verify the Firebase authentication token using the Firebase Admin SDK for Go.
 	uid, err := verifyFirebaseToken(ctx, idToken)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
 
 	// Check if the user already exists in the backend database by searching for the user's UID.
 	user, err := getUserByUID(uid)
@@ -221,7 +220,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 func addUserToFirestore(user *User) error {
     // Replace with your own Firebase project ID and service account credentials
     ctx := context.Background()
-    sa := option.WithCredentialsFile("seesay-firebase-adminsdk-clpnw-faf918ab9f.json")
+    sa := option.WithCredentialsFile("/path/to/serviceAccountKey.json")
     app, err := firebase.NewApp(ctx, nil, sa)
     if err != nil {
         return err
@@ -237,10 +236,11 @@ func addUserToFirestore(user *User) error {
     // Create a new document with a randomly generated ID
     newUserRef := client.Collection("users").NewDoc()
     // Set the user data on the document
-    _, err = newUserRef.Set(ctx, *user)
+    _, err = newUserRef.Set(ctx, *user) // pass the dereferenced user struct
     if err != nil {
         return err
     }
 
     return nil
 }
+  

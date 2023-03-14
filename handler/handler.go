@@ -28,15 +28,12 @@ func AudioHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	file, handler, err := form.File["audio"][0]
-	if err != nil {
-		return err
-	}
+	file := form.File["audio"][0]
+
+	fmt.Printf("File: %v", file)
 
 	// firebase store 에 업로드
 
-
-	uploadHandler()
 	cred_file_path := "C:\\workspace\\API-Server\\API-Server\\secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
 	audio_file_path := "C:\\workspace\\API-Server\\API-Server\\audio_1_1.wav"
 	uid := c.Params("uid")

@@ -172,6 +172,33 @@ func verifyFirebaseToken(ctx context.Context, token string) (string, error) {
     return userID, nil
 }
 
+func addUserToFirestore(user *User) error {
+    // Replace with your own Firebase project ID and service account credentials
+    ctx := context.Background()
+    sa := option.WithCredentialsFile("/path/to/serviceAccountKey.json")
+    app, err := firebase.NewApp(ctx, nil, sa)
+    if err != nil {
+        return err
+    }
+
+    // Get a Firestore client
+    client, err := app.Firestore(ctx)
+    if err != nil {
+        return err
+    }
+    defer client.Close()
+
+    // Create a new document with a randomly generated ID
+    newUserRef := client.Collection("users").NewDoc()
+    // Set the user data on the document
+    _, err = newUserRef.Set(ctx, *user) // pass the dereferenced user struct
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	// Receive the Firebase authentication token sent by the Flutter app after the user successfully logs in with Google.
@@ -216,31 +243,3 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	// Return the JWT token to the Flutter app.
 	w.Write([]byte(jwtToken))
 }
-
-func addUserToFirestore(user *User) error {
-    // Replace with your own Firebase project ID and service account credentials
-    ctx := context.Background()
-    sa := option.WithCredentialsFile("/path/to/serviceAccountKey.json")
-    app, err := firebase.NewApp(ctx, nil, sa)
-    if err != nil {
-        return err
-    }
-
-    // Get a Firestore client
-    client, err := app.Firestore(ctx)
-    if err != nil {
-        return err
-    }
-    defer client.Close()
-
-    // Create a new document with a randomly generated ID
-    newUserRef := client.Collection("users").NewDoc()
-    // Set the user data on the document
-    _, err = newUserRef.Set(ctx, *user) // pass the dereferenced user struct
-    if err != nil {
-        return err
-    }
-
-    return nil
-}
-  

@@ -19,6 +19,7 @@ func main() {
 	router.SetupRouter(app)
 
 	err := app.Listen(":8080")
+	//dd
 	if err != nil {
 		panic(err)
 	}

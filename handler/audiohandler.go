@@ -11,26 +11,33 @@ import (
 	speech "cloud.google.com/go/speech/apiv1"
 	speechpb "cloud.google.com/go/speech/apiv1/speechpb"
 
+	utils "api-server/utils"
+
 	"google.golang.org/api/option"
 )
 
 const MAX_AUDIO_FILE_SIZE = 1024 * 1024 // 1MB
 type Audio struct {
 	AudioUrl string `json:"audio_url"`
+	Uid string `json:"uid"`
 }
-func AudioHandler(c *fiber.Ctx, cred_file_path string ) error {
-	// flutter 앱에서 오디오파일을 gcp storage에 업로드하고, 그 url을 받아서, stt를 통해 텍스트를 받아온다.
-	a := new(Audio)
-	if err := c.BodyParser(a); err != nil {
-		return err
-	}
 
-	uid := c.Params("uid")
-	pid := c.Params("pid")
-	fmt.Printf(uid)
+func AudioHandler(c *fiber.Ctx) error {
+	// flutter 앱에서 오디오파일을 gcp storage에 업로드하고, 그 url을 받아서, stt를 통해 텍스트를 받아온다.
+
+	cred_file_path := utils.GetCredentialFilePath()
+
+	// a := new(Audio)
+	// if err := c.BodyParser(a); err != nil {
+	// 	return err
+	// }
+	// TODO : user valid check
+
+	pid := c.Params("pid") // 특정 문제에 대한 오디오인지 확인하기 위해 pid를 받아온다.
 	fmt.Printf(pid)
+	uri := "https://firebasestorage.googleapis.com/v0/b/seesay.appspot.com/o/audio%2F2o2ongerwob2303fewns%2Faudio_1_1.wav?alt=media&token=ec2bbb31-0e57-4de3-9f9d-9a107a815e9f"
 	// TODO : check if uid is valid (uid matches with audio url permission)
-	script := stt(a.AudioUrl, cred_file_path)
+	script := stt(uri, cred_file_path)
 	c.SendString(script)
 
 	return nil

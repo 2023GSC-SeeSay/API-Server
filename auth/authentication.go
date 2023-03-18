@@ -21,7 +21,7 @@ type User struct {
 	Email     string    `firestore:"email"`
 	Level     int       `firestore:"avatar_level"`
 	CreatedAt time.Time `firestore:"created_at"`
-	language  int       `firestore:"language_code"`
+	Language  int       `firestore:"language_code"`
 }
 
 func verifyTokenAndGetUID(token string) (string, error) {
@@ -116,7 +116,7 @@ func createUserFromToken(token string) (*User, error) {
 		Email:     email,
 		Level:     level,
 		CreatedAt: CreatedAt,
-		language:  language}
+		Language:  language}
 
 	return user, nil
 }

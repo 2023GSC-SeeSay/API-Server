@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -22,135 +21,121 @@ type Problem struct {
 	TongueUri	string 	`firestore:"tongue_uri"` 	// link
 	Type		string  `firestore:"type_"`			// 기본 발음 연습
 	Uid		int 	`firestore:"u_id"`			// 0
-    Problems  []string    `firestore:"problems,omitempty"` // list of problem names
+}
+
+type ProblemList struct {
+	ProblemList map[string]interface{} `firestore:"problem_list"` // list of problem names
 }
 
 func ProblemHandler(ctx *fiber.Ctx) error {
+	fmt.Print("ProblemHandler called\t")
 	// cred_file_path := utils.GetCredentialFilePath()
 	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
-	fmt.Print(cred_file_path)
-	pid := ctx.Params("pid")
-	fmt.Print(pid)
-
-	context := ctx.Context()
-
-	problem, err := GetFireStoreProblem(context, pid, cred_file_path)
-	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).SendString("Error getting Firestore document")
-	}
-
-	jsonData, err := json.Marshal(problem)
-	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).SendString("Error converting Firestore data to JSON")
-	}
-
-	ctx.Set("Content-Type", "application/json") // set the content type as JSON
-	ctx.Set("Access-Control-Allow-Origin", "*") // allows CORS
-
-
-    // Print the data.
-    fmt.Println(problem)
-
-	// firebase firestore query로 pid의 정보를 가져옴
-	// 가져온 정보를 json으로 변환하여 response로 보냄
-	return ctx.Status(http.StatusOK).SendString(string(jsonData))  
-}
-
-
-func GetFireStoreProblem(context context.Context, pidStr string, cred_file_path string) (interface{}, error) {
-    // firebase firestore query로 pid의 정보를 가져옴
-    // 가져온 정보를 json으로 변환하여 response로 보냄
-
-    // ctx := context.Background()
-    projectID := "seesay"
-    var problem Problem
+	pidStr := ctx.Params("pid")
 	pid, err := strconv.Atoi(pidStr)
 	if err != nil {
-		return problem, err
+		return ctx.Status(http.StatusInternalServerError).SendString("Error converting pid to int")
 	}
 
-    client, err := firestore.NewClient(context, projectID, option.WithCredentialsFile(cred_file_path))
-    if err != nil {
-        return problem, err
-    }
-    defer client.Close()
+	if pid == 0 {
+		fmt.Print("p_id == 0: get problem list\n\n")
+		context := ctx.Context()
 
-    if pid == 0 {
-        
-		doc, err := client.Collection("problems").Doc("problem_list").Get(context)
+		problemList, err := GetFireStoreProblemList(context, cred_file_path)
 		if err != nil {
-			log.Fatalf("Failed to get problem list document: %v", err)
+			return ctx.Status(http.StatusInternalServerError).SendString("Error getting Firestore document")
 		}
 
-		var data map[string]interface{}
-		if err := doc.DataTo(&data); err != nil {
-			return problem, fmt.Errorf("failed to convert problem list to map: %v", err)
+		jsonData, err := json.Marshal(problemList)
+		if err != nil {
+			return ctx.Status(http.StatusInternalServerError).SendString("Error converting Firestore data to JSON")
 		}
 
-		// Extract problem names from map
-		var problemList []string
-		for _, value := range data {
-			if strValue, ok := value.(string); ok {
-				problemList = append(problemList, strValue)
-			}
+
+		ctx.Set("Content-Type", "application/json") // set the content type as JSON
+		ctx.Set("Access-Control-Allow-Origin", "*") // allows CORS
+
+
+		// Print the data.
+		fmt.Println(problemList)
+
+		return ctx.Status(http.StatusOK).SendString(string(jsonData)) 
+
+	} else {
+		fmt.Printf("p_id == %v: get problem #%v\n\n", pid, pid)
+		context := ctx.Context()
+
+		problem, err := GetFireStoreProblem(context, pid, cred_file_path)
+		if err != nil {
+			return ctx.Status(http.StatusInternalServerError).SendString("Error getting Firestore document")
 		}
-	
-		problem.Problems = problemList
-		problem.Pid = pid
-		return problem, nil
 
-    } else {
-        // fetch specific problem
-        query := client.Collection("problems").Where("p_id", "==", pid).Limit(1)
-        docs, err := query.Documents(context).GetAll()
-        if err != nil {
-            return problem, fmt.Errorf("failed to get documents: %v", err)
-        }
-        if len(docs) > 0 {
-            var p Problem
-            if err := docs[0].DataTo(&p); err != nil {
-                return problem, fmt.Errorf("failed to convert document to Problem struct: %v", err)
-            }
-            problem = p
-        }
-    }
+		jsonData, err := json.Marshal(problem)
+		if err != nil {
+			return ctx.Status(http.StatusInternalServerError).SendString("Error converting Firestore data to JSON")
+		}
 
-    return problem, nil
+
+		ctx.Set("Content-Type", "application/json") // set the content type as JSON
+		ctx.Set("Access-Control-Allow-Origin", "*") // allows CORS
+
+
+		// Print the data.
+		fmt.Println(problem)
+
+		return ctx.Status(http.StatusOK).SendString(string(jsonData))  
+	}
+
+}
+
+func GetFireStoreProblemList(context context.Context, cred_file_path string) (*ProblemList, error)  {
+	projectID := "seesay"
+	var pList ProblemList
+
+	client, err := firestore.NewClient(context, projectID, option.WithCredentialsFile(cred_file_path))
+	if err != nil {
+		fmt.Printf("Failed to create client: %v", err)
+		return nil, err
+	}
+	defer client.Close()
+
+	doc, err := client.Collection("problems").Doc("problem_list").Get(context)
+	if err != nil {
+		fmt.Printf("Failed to get document: %v", err)
+		return nil, err
+	}
+
+	docData := doc.Data()
+
+	pList.ProblemList = docData["problem_list"].(map[string]interface{})
+
+	return &pList, nil
 }
 
 
+func GetFireStoreProblem(context context.Context, pid int, cred_file_path string) (*Problem, error)  {
+	projectID := "seesay"
+	var problem Problem
 
-// func GetFireStoreProblem(context context.Context, pidStr string, cred_file_path string) (Problem, error)  {
-// 	// firebase firestore query로 pid의 정보를 가져옴
-// 	// 가져온 정보를 json으로 변환하여 response로 보냄
+	client, err := firestore.NewClient(context, projectID, option.WithCredentialsFile(cred_file_path))
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
 
-// 	// ctx := context.Background()
-// 	projectID := "seesay"
-// 	var problem Problem
-// 	pid, err := strconv.Atoi(pidStr)
-// 	if err != nil {
-// 		return problem, err
-// 	}
+	query := client.Collection("problems").Where("p_id", "==", pid).Limit(1)
 
-// 	client, err := firestore.NewClient(context, projectID, option.WithCredentialsFile(cred_file_path))
-// 	if err != nil {
-// 		return problem, err
-// 	}
-// 	defer client.Close()
+	docs, err := query.Documents(context).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get documents: %v", err)
+	}
 
-// 	query := client.Collection("problems").Where("p_id", "==", pid).Limit(1)
+	if len(docs) > 0 {
+		if err := docs[0].DataTo(&problem); err != nil {
+			return nil, fmt.Errorf("failed to convert document to Problem struct: %v", err)
+		}
+	}
 
-// 	docs, err := query.Documents(context).GetAll()
-// 	if err != nil {
-// 		return problem, fmt.Errorf("failed to get documents: %v", err)
-// 	}
+	return &problem, nil
+}
 
-// 	if len(docs) > 0 {
-// 		if err := docs[0].DataTo(&problem); err != nil {
-// 			return problem, fmt.Errorf("failed to convert document to Problem struct: %v", err)
-// 		}
-// 	}
-
-// 	return problem, nil
-
-// }

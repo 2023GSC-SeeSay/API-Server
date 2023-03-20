@@ -34,7 +34,7 @@ func AudioHandler(c *fiber.Ctx) error {
 	// TODO : user valid check
 
 	pid := c.Params("pid") // 특정 문제에 대한 오디오인지 확인하기 위해 pid를 받아온다.
-	fmt.Printf(pid)
+	fmt.Print(pid)
 	uri := "https://firebasestorage.googleapis.com/v0/b/seesay.appspot.com/o/audio%2F2o2ongerwob2303fewns%2Faudio_1_1.wav?alt=media&token=ec2bbb31-0e57-4de3-9f9d-9a107a815e9f"
 	// TODO : check if uid is valid (uid matches with audio url permission)
 	script := stt(uri, cred_file_path)

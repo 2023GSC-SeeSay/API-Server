@@ -3,6 +3,8 @@ package handler
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
 
 	fiber "github.com/gofiber/fiber/v2"
 
@@ -10,8 +12,6 @@ import (
 
 	speech "cloud.google.com/go/speech/apiv1"
 	speechpb "cloud.google.com/go/speech/apiv1/speechpb"
-
-	utils "api-server/utils"
 
 	"google.golang.org/api/option"
 )
@@ -24,25 +24,61 @@ type Audio struct {
 
 func AudioHandler(c *fiber.Ctx) error {
 	// flutter 앱에서 오디오파일을 gcp storage에 업로드하고, 그 url을 받아서, stt를 통해 텍스트를 받아온다.
-
-	cred_file_path := utils.GetCredentialFilePath()
+	fmt.Print("AudioHandler called\n")
+	// cred_file_path := utils.GetCredentialFilePath()
+	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
+	// ctx := context.Background()
 
 	// a := new(Audio)
 	// if err := c.BodyParser(a); err != nil {
 	// 	return err
 	// }
-	// TODO : user valid check
+	// TODO : user valid checkuidStr := context.Params("uid")
+	
+	uidStr := c.Params("uid")
+	pidStr := c.Params("pid")
+	pid, err := strconv.Atoi(pidStr)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).SendString("Error converting uid to int")
+	}
+	
+	fmt.Printf("uid: %v, pid: %v\n", uidStr, pid)
 
-	pid := c.Params("pid") // 특정 문제에 대한 오디오인지 확인하기 위해 pid를 받아온다.
-	fmt.Print(pid)
-	uri := "https://firebasestorage.googleapis.com/v0/b/seesay.appspot.com/o/audio%2F2o2ongerwob2303fewns%2Faudio_1_1.wav?alt=media&token=ec2bbb31-0e57-4de3-9f9d-9a107a815e9f"
+	// client, err := storage.NewClient(ctx, option.WithCredentialsFile(cred_file_path))
+	// if err != nil {
+	// 	return c.Status(http.StatusInternalServerError).SendString("Error creating storage client")
+	// }
+	
+	// // Get a handle to the bucket
+	// bucket := client.Bucket("seesay.appspot.com")
+	
+	// // Get a handle to the object
+	// objectName := fmt.Sprintf("audio/uid:%s/pid:%d/%s", uidStr, pid, audioName)
+	
+	// objectAttrs, err := bucket.Object(objectName).Attrs(ctx)
+	// if err != nil {
+	// 	log.Fatalf("Error getting object attributes: %v", err)
+	// }
+	// audioURL, err := storage.SignedURL(objectAttrs.Bucket, objectAttrs.Name, &storage.SignedURLOptions{
+	// 	GoogleAccessID: "seesay@appspot.gserviceaccount.com",
+	// 	Method:         http.MethodGet,
+	// 	Expires:        time.Now().Add(time.Hour),
+	// })
+	// if err != nil {
+	// 	log.Fatalf("Error creating signed URL: %v", err)
+	// }
+	
+	audioURL := fmt.Sprintf("gs://seesay.appspot.com/audio/uid:%s/pid:%d/audio.wav", uidStr, pid)
+
+	fmt.Printf("Audio URL: %s\n", audioURL)
+
 	// TODO : check if uid is valid (uid matches with audio url permission)
-	script := stt(uri, cred_file_path)
+	script := stt(audioURL, cred_file_path)
 	c.SendString(script)
 
 	return nil
 }
-func stt(audio_uri string, cred_file_path string) string {
+func stt(audioURL string, cred_file_path string) string {
 		/* Transcribe the given audio file using google cloud speech api.*/
 		/* Requires audio file path & credential file path */
 		credFilePath := cred_file_path
@@ -60,29 +96,25 @@ func stt(audio_uri string, cred_file_path string) string {
 		}
 		defer speechClient.Close()
 
-		if err != nil {
-			fmt.Printf("Error reading audio file: %v\n", err)
-			return ""
-		}
 		// fmt.Printf("Audio data: %v\n", audioData)
 		config := &speechpb.RecognitionConfig{
 			Encoding:        speechpb.RecognitionConfig_LINEAR16,
 			SampleRateHertz: 44100,
-			LanguageCode:    "en-US",
+			LanguageCode:    "ko-KR",
 			}
 		
-			// Create a new RecognitionAudio from the audio data
-			audio := &speechpb.RecognitionAudio{
-				AudioSource: &speechpb.RecognitionAudio_Uri{Uri: audio_uri},
-			}
-		
-			// Call the SpeechClient's Recognize method to transcribe the audio
+		// Create a new RecognitionAudio from the audio data
+		audio := &speechpb.RecognitionAudio{
+			AudioSource: &speechpb.RecognitionAudio_Uri{Uri: audioURL},
+		}
+	
+		// Call the SpeechClient's Recognize method to transcribe the audio
 		resp, err := speechClient.Recognize(ctx, &speechpb.RecognizeRequest{
 			Config: config,
 			Audio:  audio,
 		})
 		fmt.Printf("Response: %v\n", resp)
-		// fmt.Printf("Error: %v\n", err)
+		
 		if err != nil {
 			fmt.Printf("Error transcribing audio: %v\n", err)
 			return ""

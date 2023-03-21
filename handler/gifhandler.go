@@ -16,7 +16,8 @@ import (
 func GIFHandler(c *fiber.Ctx) error {
 	fmt.Print("GIFHandler called\t|")
 	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
-	gif_path := c.Params("gif_path")
+	gifName := c.Params("gif_path")
+	gif_path := fmt.Sprintf("gif/%s", gifName)
 	
 	ctx := context.Background()
 	config := &firebase.Config{ProjectID: "seesay"}

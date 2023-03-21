@@ -28,7 +28,7 @@ type ProblemList struct {
 }
 
 func ProblemHandler(ctx *fiber.Ctx) error {
-	fmt.Print("ProblemHandler called\t")
+	fmt.Print("ProblemHandler called\t|")
 	// cred_file_path := utils.GetCredentialFilePath()
 	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
 	pidStr := ctx.Params("pid")

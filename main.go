@@ -20,7 +20,7 @@ func main() {
 	
 	router.SetupRouter(app)
 	app.Get("/problems/:pid", handler.ProblemHandler) // fetching problem
-
+	app.Get("/gif/:gif_path", handler.GIFHandler) // fetching gif
 	err := app.Listen(":8080")
 	//dd
 	if err != nil {
@@ -29,3 +29,9 @@ func main() {
 	}
 
 }
+
+// 아래 주소에서 동작 확인
+// /problems/0
+// /problems/1
+// /gif/gif/4JU.gif
+// /gif/gif/7IsD.gif

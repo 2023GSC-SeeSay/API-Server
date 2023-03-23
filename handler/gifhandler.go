@@ -11,7 +11,7 @@ import (
 )
 
 func UploadGIFHandler(c *fiber.Ctx) error {
-	fmt.Print("UploadGIFHandler called\t|")
+	fmt.Print("UploadGIFHandler called\n")
 	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
 	
 	// get the file from the request body

@@ -12,12 +12,8 @@ func SetupRouter (app *fiber.App) {
 	// define routes
 	api.Get("/audio/:uid/:pid", handler.AudioHandler)
 	app.Get("/problems/:pid", handler.ProblemHandler) // fetching problem
-	app.Get("/gif/:gif_path", handler.GIFHandler) // fetching gif
+	app.Post("/upload", handler.UploadGIFHandler) // uploading gif
 }	
 
 
-// 아래 주소에서 동작 확인
-// /problems/0
-// /problems/1
-// /gif/gif/4JU.gif
-// /gif/gif/7IsD.gif
+// curl -X POST -F "file=@C:\Users\HongEunbeen\Desktop\test.gif" http://localhost:8080/upload

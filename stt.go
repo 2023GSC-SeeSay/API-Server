@@ -44,8 +44,8 @@ func stt(audio_file_path string, cred_file_path string) string {
 		// fmt.Printf("Audio data: %v\n", audioData)
 		config := &speechpb.RecognitionConfig{
 			Encoding:        speechpb.RecognitionConfig_LINEAR16,
-			SampleRateHertz: 44100,
-			LanguageCode:    "en-US",
+			SampleRateHertz: 48000,
+			LanguageCode:    "ko-KR",
 			}
 		
 			// Create a new RecognitionAudio from the audio data

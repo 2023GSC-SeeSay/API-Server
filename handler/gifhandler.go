@@ -4,20 +4,22 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 
 	firebase "firebase.google.com/go/v4"
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/api/option"
 )
 
-
-
-func GIFHandler(c *fiber.Ctx) error {
-	fmt.Print("GIFHandler called\t|")
+func UploadGIFHandler(c *fiber.Ctx) error {
+	fmt.Print("UploadGIFHandler called\t|")
 	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
-	gifName := c.Params("gif_path")
-	gif_path := fmt.Sprintf("gif/%s", gifName)
+	
+	// get the file from the request body
+	file, err := c.FormFile("file")
+	if err != nil {
+		fmt.Printf("Failed to get file: %v", err)
+		return err
+	}
 	
 	ctx := context.Background()
 	config := &firebase.Config{ProjectID: "seesay"}
@@ -39,25 +41,46 @@ func GIFHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	gifRef := bucket.Object(gif_path)
-
-	gifReader, err := gifRef.NewReader(ctx)
-	if err != nil {
-		fmt.Printf("Failed to read GIF: %v", err)
-		return err
-	}
-	defer gifReader.Close()
-
-	gifBytes, err := ioutil.ReadAll(gifReader)
-	if err != nil {
-		fmt.Printf("Failed to get GIF: %v", err)
-		return err
-	}
-
-
-	c.Response().Header.Set("Content-Type", "image/gif")
-	c.Response().Header.Set("Content-Length", strconv.Itoa(len(gifBytes)))
-	c.Write(gifBytes)
+	// create the file path in the bucket
+	gifName := file.Filename
+	gif_path := fmt.Sprintf("gif/%s", gifName)
 	
-	return nil
+	// open a write stream to the bucket
+	wc := bucket.Object(gif_path).NewWriter(ctx)
+
+	// set the content type of the file
+	wc.ContentType = "image/gif"
+	
+	// open the file
+	fileReader, err := file.Open()
+	if err != nil {
+		fmt.Printf("Failed to open file: %v", err)
+		return err
+	}
+	defer fileReader.Close()
+
+	// read the file data from the file reader
+	fileBytes, err := ioutil.ReadAll(fileReader)
+	if err != nil {
+		fmt.Printf("Failed to read file: %v", err)
+		return err
+	}
+
+	// write the file data to the bucket
+	_, err = wc.Write(fileBytes)
+	if err != nil {
+		fmt.Printf("Failed to write file: %v", err)
+		return err
+	}
+	
+	// close the write stream
+	err = wc.Close()
+	if err != nil {
+		fmt.Printf("Failed to close write stream: %v", err)
+		return err
+	}
+
+	// return the URL of the uploaded file
+	url := fmt.Sprintf("https://storage.googleapis.com/seesay.appspot.com/%s", gif_path)
+	return c.JSON(fiber.Map{"url": url})
 }

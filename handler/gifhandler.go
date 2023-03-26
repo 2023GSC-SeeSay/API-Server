@@ -12,15 +12,15 @@ import (
 
 func UploadGIFHandler(c *fiber.Ctx) error {
 	fmt.Print("UploadGIFHandler called\n")
-	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
-	
+	cred_file_path := "credentials.json"
+
 	// get the file from the request body
 	file, err := c.FormFile("file")
 	if err != nil {
 		fmt.Printf("Failed to get file: %v", err)
 		return err
 	}
-	
+
 	ctx := context.Background()
 	config := &firebase.Config{ProjectID: "seesay"}
 	app, err := firebase.NewApp(ctx, config, option.WithCredentialsFile(cred_file_path))
@@ -44,13 +44,13 @@ func UploadGIFHandler(c *fiber.Ctx) error {
 	// create the file path in the bucket
 	gifName := file.Filename
 	gif_path := fmt.Sprintf("gif/%s", gifName)
-	
+
 	// open a write stream to the bucket
 	wc := bucket.Object(gif_path).NewWriter(ctx)
 
 	// set the content type of the file
 	wc.ContentType = "image/gif"
-	
+
 	// open the file
 	fileReader, err := file.Open()
 	if err != nil {
@@ -72,7 +72,7 @@ func UploadGIFHandler(c *fiber.Ctx) error {
 		fmt.Printf("Failed to write file: %v", err)
 		return err
 	}
-	
+
 	// close the write stream
 	err = wc.Close()
 	if err != nil {

@@ -13,14 +13,14 @@ import (
 )
 
 type Problem struct {
-	Mouth		string 	`firestore:"mouth"`		 	// 입은 어떻게어떻게 벌립니다
-	MouthUri	string 	`firestore:"mouth_uri"`		// link
-	Pid		int 	`firestore:"p_id"` 			// 1
-	Title		string 	`firestore:"title"` 		// 기본 단어 2
-	Tongue		string 	`firestore:"tongue"` 		// 혀는 어떻게 어떻게 합니다
-	TongueUri	string 	`firestore:"tongue_uri"` 	// link
-	Type		string  `firestore:"type_"`			// 기본 발음 연습
-	Uid		int 	`firestore:"u_id"`			// 0
+	Mouth     string `firestore:"mouth"`      // 입은 어떻게어떻게 벌립니다
+	MouthUri  string `firestore:"mouth_uri"`  // link
+	Pid       int    `firestore:"p_id"`       // 1
+	Title     string `firestore:"title"`      // 기본 단어 2
+	Tongue    string `firestore:"tongue"`     // 혀는 어떻게 어떻게 합니다
+	TongueUri string `firestore:"tongue_uri"` // link
+	Type      string `firestore:"type_"`      // 기본 발음 연습
+	Uid       int    `firestore:"u_id"`       // 0
 }
 
 type ProblemList struct {
@@ -30,7 +30,7 @@ type ProblemList struct {
 func ProblemHandler(ctx *fiber.Ctx) error {
 	fmt.Print("ProblemHandler called\t|")
 	// cred_file_path := utils.GetCredentialFilePath()
-	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
+	cred_file_path := "credentials.json"
 	pidStr := ctx.Params("pid")
 	pid, err := strconv.Atoi(pidStr)
 	if err != nil {
@@ -51,15 +51,13 @@ func ProblemHandler(ctx *fiber.Ctx) error {
 			return ctx.Status(http.StatusInternalServerError).SendString("Error converting Firestore data to JSON")
 		}
 
-
 		ctx.Set("Content-Type", "application/json") // set the content type as JSON
 		ctx.Set("Access-Control-Allow-Origin", "*") // allows CORS
-
 
 		// Print the data.
 		fmt.Println(problemList)
 
-		return ctx.Status(http.StatusOK).SendString(string(jsonData)) 
+		return ctx.Status(http.StatusOK).SendString(string(jsonData))
 
 	} else {
 		fmt.Printf("p_id == %v: get problem #%v\n\n", pid, pid)
@@ -75,20 +73,18 @@ func ProblemHandler(ctx *fiber.Ctx) error {
 			return ctx.Status(http.StatusInternalServerError).SendString("Error converting Firestore data to JSON")
 		}
 
-
 		ctx.Set("Content-Type", "application/json") // set the content type as JSON
 		ctx.Set("Access-Control-Allow-Origin", "*") // allows CORS
-
 
 		// Print the data.
 		fmt.Println(problem)
 
-		return ctx.Status(http.StatusOK).SendString(string(jsonData))  
+		return ctx.Status(http.StatusOK).SendString(string(jsonData))
 	}
 
 }
 
-func GetFireStoreProblemList(context context.Context, cred_file_path string) (*ProblemList, error)  {
+func GetFireStoreProblemList(context context.Context, cred_file_path string) (*ProblemList, error) {
 	projectID := "seesay"
 	var pList ProblemList
 
@@ -112,8 +108,7 @@ func GetFireStoreProblemList(context context.Context, cred_file_path string) (*P
 	return &pList, nil
 }
 
-
-func GetFireStoreProblem(context context.Context, pid int, cred_file_path string) (*Problem, error)  {
+func GetFireStoreProblem(context context.Context, pid int, cred_file_path string) (*Problem, error) {
 	projectID := "seesay"
 	var problem Problem
 
@@ -138,4 +133,3 @@ func GetFireStoreProblem(context context.Context, pid int, cred_file_path string
 
 	return &problem, nil
 }
-

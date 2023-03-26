@@ -19,7 +19,7 @@ type Book struct {
 
 func BookshelfHandler(c *fiber.Ctx) error {
 	fmt.Print("BookshelfHandler called\n")
-	cred_file_path := "secret\\seesay-firebase-adminsdk-clpnw-faf918ab9f.json"
+	cred_file_path := "credentials.json"
 
 	// Parse request body
 	book := new(Book)

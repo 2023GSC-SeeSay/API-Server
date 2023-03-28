@@ -11,21 +11,27 @@ import (
 
 func TextToPronounce() {
 	// Use python script
-	cmd, err := exec.Command("python", "C:\\workspace\\API-Server\\API-Server\\handler\\1.py", "--text", "안녕하세요").Output()
+	cmd, err := exec.Command("python", "C:\\workspace\\API-Server\\API-Server\\handler\\t2p.py", "--text", "안녕하세요").Output()
 	if err != nil {
 		panic(err)
 	}
 	s := string(cmd[2:len(string(cmd))-1])
 	s = strings.ReplaceAll(s, "\\", "")
 	s = strings.ReplaceAll(s, "x", "")
-
+	s = strings.ReplaceAll(s, "*", "ec83b7")
+	fmt.Printf("%v", s)
 	b, _ := hex.DecodeString(s)
-	// fmt.Printf("%v", b)
+	fmt.Printf("%v", b)
 	ans := ""
 	for i := 0; i < len(b);  {
 		r, size := utf8.DecodeRune(b[i:i+3])
-		ans += string(r)
+		if string(r) == "샷" {
+			ans += "*"
+		} else {
+			ans += string(r)
+		}
 		i += size
+
 	}
 	fmt.Printf("%v", ans)
 }

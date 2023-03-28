@@ -18,7 +18,7 @@ func TextToPronounce(text string) (string, error) {
 	// fmt.Printf("%v", dir)
 	// Use python script
 	// fmt.Print(fmt.Sprintf("\n%s\\handler\\t2p.py\n", dir))
-	cmd, err := exec.Command("python", fmt.Sprintf("%s\\handler\\t2p.py", dir), "--text", text).Output()
+	cmd, err := exec.Command("python", fmt.Sprintf("%s/handler/t2p.py", dir), "--text", text).Output()
 	if err != nil {
 		return "", err
 	}

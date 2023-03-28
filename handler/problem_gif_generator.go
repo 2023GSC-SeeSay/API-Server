@@ -123,7 +123,7 @@ func GenerateGIF(pathes []GifInfo, title string) string {
 	}
 
 	// save the GIF to a file
-	gif_path := fmt.Sprintf("%s\\assets\\video\\%s.gif", dir, title)
+	gif_path := fmt.Sprintf("%s/assets/video/%s.gif", dir, title)
 	f, err := os.Create(gif_path)
 	if err != nil {
 		panic(err)

@@ -1,7 +1,5 @@
 from g2pk import G2p
 import argparse
-import sys
-from io import StringIO
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--text', '-t', type=str, required=True,

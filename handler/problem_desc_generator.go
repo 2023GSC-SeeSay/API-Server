@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 )
+
 func GenerateDescMouth(sentence string) string {
 	/* This functions are not allowed for exclamation mark except "*" */
 	desc := ""
@@ -11,7 +12,7 @@ func GenerateDescMouth(sentence string) string {
 		// fmt.Printf("%d : %c", i, v)
 		if count%3 == 1 {
 			desc += string(v)
-			desc += "발음 :"
+			desc += " 발음 :"
 			if chungsung_style[v] < 10 {
 				desc += chungsung_description[chungsung_style[v]]
 			} else {
@@ -42,13 +43,13 @@ func GenerateDescTongue(sentence string) string {
 	for _, v := range sentence {
 		if count%3 == 0 {
 			desc += string(v)
-			desc += "발음 :"
+			desc += " 발음 :"
 			desc += chosung_description[chosung_style[v]]
 			desc += "\n"
 		}
 		if count%3 == 2 {
 			if v == '*' {
-				count ++
+				count++
 				continue
 			}
 			desc += string(v)
@@ -56,7 +57,7 @@ func GenerateDescTongue(sentence string) string {
 			desc += chongsung_description[chongsung_style[v]]
 			desc += "\n"
 		}
-		count ++
+		count++
 	}
 	fmt.Printf("%s", desc)
 	return desc

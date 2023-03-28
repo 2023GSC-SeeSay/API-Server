@@ -9,8 +9,8 @@ import (
 	"google.golang.org/api/option"
 )
 
-func UpLoadGIFHandler(title string, path string) string{
-	
+func UpLoadGIFHandler(title string, path string) string {
+
 	gifName := title + ".gif"
 	gif_path := fmt.Sprintf("gif/%s", gifName)
 
@@ -22,7 +22,7 @@ func UpLoadGIFHandler(title string, path string) string{
 
 func UploadGIF(title string, path string) error {
 	fmt.Print("UploadGIFHandler called\n")
-	cred_file_path := "C:\\workspace\\API-Server\\API-Server\\secret\\creds.json"
+	cred_file_path := "C:\\Users\\abc\\workspace\\API-Server\\secret\\credentials.json"
 
 	// open gif file from file path
 
@@ -57,7 +57,7 @@ func UploadGIF(title string, path string) error {
 	wc.ContentType = "image/gif"
 
 	// open the file
-	
+
 	// fileReader, err := file.Open()
 	// if err != nil {
 	// 	fmt.Printf("Failed to open file: %v", err)

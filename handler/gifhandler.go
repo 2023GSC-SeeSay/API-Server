@@ -22,7 +22,7 @@ func UpLoadGIFHandler(title string, path string) string {
 
 func UploadGIF(title string, path string) error {
 	fmt.Print("UploadGIFHandler called\n")
-	cred_file_path := "C:\\Users\\abc\\workspace\\API-Server\\secret\\credentials.json"
+	cred_file_path := "credentials.json"
 
 	// open gif file from file path
 

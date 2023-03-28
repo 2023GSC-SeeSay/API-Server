@@ -1,7 +1,7 @@
 package router
 
 import (
-	handler "api-server/handler"
+	handler "github.com/2023GSC-SeeSay/API-Server/handler"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
@@ -11,9 +11,8 @@ func SetupRouter(app *fiber.App) {
 
 	// define routes
 	api.Get("/audio/:uid/:pid", handler.AudioHandler)
-	app.Get("/api/problems/:pid", handler.ProblemHandler) // fetching problem
-	app.Post("/api/bookshelf", handler.BookshelfHandler)  // uploading bookshelf
-	app.Post("/api/upload", handler.UploadGIFHandler)     // uploading gif
+	api.Get("/problems/:uid/:pid", handler.ProblemHandler) // fetching problem
+	api.Post("/bookshelf", handler.BookshelfHandler)       // uploading bookshelf
 
 }
 

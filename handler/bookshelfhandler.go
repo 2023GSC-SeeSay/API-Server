@@ -18,6 +18,7 @@ type BookSave struct {
 	Uid          int
 	MouthDesc    string
 	TongueDesc   string
+	Text         string
 }
 
 // Struct for request
@@ -26,11 +27,16 @@ type Book struct {
 	Uid  int    `json:"uid" xml:"uid" form:"uid" query:"uid"`
 	Text string `json:"text" xml:"text" form:"text" query:"text"`
 }
+type BookList struct {
+	Pid  int
+	Uid  int
+	Text string
+}
 
 func BookshelfHandler(c *fiber.Ctx) error {
 
 	fmt.Print("BookshelfHandler called\n")
-	cred_file_path := "C:\\Users\\abc\\workspace\\API-Server\\secret\\credentials.json"
+	cred_file_path := "credentials.json"
 
 	// Parse request body
 	book := new(Book)
@@ -48,6 +54,7 @@ func BookshelfHandler(c *fiber.Ctx) error {
 		Uid:          book.Uid,
 		MouthDesc:    "",
 		TongueDesc:   "",
+		Text:         book.Text,
 	}
 
 	fmt.Printf("BookshelfHandler: %v", book)
@@ -79,17 +86,18 @@ func BookshelfHandler(c *fiber.Ctx) error {
 	}
 
 	// Generate GIF and upload to firebase
-	PronounceText, err := TextToPronounce(book.Text)
+	PronounceText, err := TextToPronounce(string(book.Text))
 	if err != nil {
 		log.Printf("Error parsing request body: %v", err)
 		return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
 			"message": "Error making request",
 		})
 	}
-	// Use only 모음
+	// Seperate Mouth and Tongue
 	count := 0
 	MouthText := ""
 	TongueText := ""
+	fmt.Printf("PronounceText: %v \n", PronounceText)
 	for _, char := range PronounceText {
 		if count%3 == 1 {
 			MouthText += string(char)
@@ -100,6 +108,7 @@ func BookshelfHandler(c *fiber.Ctx) error {
 		}
 		count++
 	}
+	fmt.Printf("Text: %v \n", book.Text)
 	fmt.Printf("MouthText: %v \n", MouthText)
 	fmt.Printf("TongueText: %v \n", TongueText)
 
@@ -115,6 +124,11 @@ func BookshelfHandler(c *fiber.Ctx) error {
 	booksave.GifMouthUrl = firebase_gif_mouth_path
 	booksave.GifTongueUrl = firebase_gif_tongue_path
 
+	booklist := BookList{
+		Pid:  book.Pid,
+		Uid:  book.Uid,
+		Text: book.Text,
+	}
 	// Add Response book to Firestore (problems)
 	client, err := firestore.NewClient(context.Background(), "seesay", option.WithCredentialsFile(cred_file_path))
 	if err != nil {
@@ -125,14 +139,20 @@ func BookshelfHandler(c *fiber.Ctx) error {
 	}
 	defer client.Close()
 
-	_, _, err = client.Collection("problems/userProblems/1").Add(context.Background(), booksave)
+	_, _, err = client.Collection("problems/userProblems/list").Add(context.Background(), booksave)
 	if err != nil {
 		log.Printf("Error adding book to Firestore: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
 		})
 	}
-
+	_, _, err = client.Collection("problems/userProblems/plist").Add(context.Background(), booklist)
+	if err != nil {
+		log.Printf("Error adding book to Firestore: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Book added to shelf",
 		"book":    booksave,
